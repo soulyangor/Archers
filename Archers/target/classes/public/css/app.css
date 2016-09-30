@@ -1,0 +1,67 @@
+.fieldname.ng-valid {
+    background-color: lightgreen;
+}
+.fieldname.ng-dirty.ng-invalid-required {
+    background-color: red;
+}
+.fieldname.ng-dirty.ng-invalid-minlength {
+    background-color: yellow;
+}
+
+body, #mainWrapper {
+    height: 70%;
+    background-color:rgb(245, 245, 245);
+}
+
+body, .form-control{
+    font-size:12px!important;
+}
+
+.floatRight{
+    float:right;
+    margin-right: 18px;
+}
+
+.has-error{
+    color:red;
+}
+
+.formcontainer{
+    background-color: #DAE8E8;
+    padding: 20px;
+}
+
+.tablecontainer{
+    height: 500px;
+    padding-left: 20px;
+    padding-right: 20px;
+    overflow: auto;
+}
+
+.generic-container {
+    margin: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: #EAE7E7;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 0 10px black;
+}
+
+.custom-width {
+    width: 80px !important;
+}
+
+.submitLink {
+    background-color: transparent;
+    text-decoration: underline;
+    border: none;
+    color: blue;
+    cursor: pointer;
+}
+
+submitLink:focus {
+    outline: none;
+}

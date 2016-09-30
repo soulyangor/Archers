@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>Game</title>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/lib/bootstrap.min.css}"/>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/lib/smoke.min.css}"/>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/app.css}"/>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/lib/jquery-ui.css}"/>
+        <script th:src="@{/js/lib/jquery-1.12.0.min.js}"></script>
+        <script th:src="@{/js/lib/jquery-ui.min.js}"></script>
+        <script th:src="@{/js/lib/bootstrap.min.js}"></script>
+        <script th:src="@{/js/lib/angular.min.1.4.9.js}"></script>
+        <script th:src="@{/js/lib/sockjs-0.3.4.js}"></script>
+        <script th:src="@{/js/lib/stomp.js}"></script>
+        <script th:src="@{/js/app.js}"></script>
+    </head>
+    <body> 
+        <canvas id="canvas" width="1300" height="600"> 
+            <!-- Insert fallback content here -->
+            Sorry, your browser doesn't support canvas technology 
+        </canvas> 
+        <div class="row" style="margin-left: 0px; margin-right: 0px; padding-left: 5px;">
+            <button id="range" class="btn-info btn-sm"
+                    data-toggle="tooltip" 
+                    data-placement="bottom" 
+                    title="Увеличение дальности видимости и стрельбы"
+                    onclick = "gold -= rangePrice;
+                            player.viewRange += 20;
+                            player.attackRange += 20;">
+                <span class = "glyphicon glyphicon-eye-open"></span>
+            </button>
+            <label id = "rangeLabel"></label>
+            <button id ="damage" class="btn-danger btn-sm"
+                    data-toggle="tooltip" 
+                    data-placement="bottom" 
+                    title="Увеличение урона"
+                    onclick = "gold -= damagePrice;
+                            player.damage += 1;">
+                <span class="glyphicon glyphicon-fire"></span>
+            </button>
+            <label id = "damageLabel"></label>
+            <button id ="attackSpeed" class="btn-warning btn-sm"
+                    data-toggle="tooltip" 
+                    data-placement="bottom" 
+                    title="Увеличение скорости атаки"
+                    onclick = "gold -= 50;
+                            player.attackSpeed += 0.5;">
+                <span class="glyphicon glyphicon-flash"></span>
+            </button>
+            <label id = "attackSpeedLabel"></label>
+            <button id="bulletSpeed" class="btn-success btn-sm"
+                    data-toggle="tooltip" 
+                    data-placement="bottom" 
+                    title="Увеличене скорости полёта стрел"
+                    onclick = "gold -= 50;
+                            player.bulletSpeed = player.bulletSpeed > 24 ? 24 : player.bulletSpeed + 0.5;">
+                <span class="glyphicon glyphicon-arrow-right"></span>
+            </button>
+            <label id = "bulletSpeedLabel"></label>
+            <button id="radar" class="btn-primary btn-sm"
+                    accesskey="r"
+                    data-toggle="tooltip" 
+                    data-placement="bottom" 
+                    title="Включить радар"
+                    onclick="radar.on();">
+                <span class="glyphicon glyphicon-map-marker"></span>
+            </button>
+            <label id = "timer"></label>
+        </div>
+        <script th:src="@{/js/game/connection.js}"></script>
+        <script th:src="@{/js/game/Bullet.js}"></script>
+        <script th:src="@{/js/game/Player.js}"></script>
+        <script th:src="@{/js/game/EnvCell.js}"></script>
+        <script th:src="@{/js/game/Environment.js}"></script>
+        <script th:src="@{/js/game/GameLoop.js}"></script>
+        <script th:src="@{/js/game/Control.js}"></script>
+    </body> 
+</html> 

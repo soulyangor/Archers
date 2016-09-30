@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>Main</title>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/lib/bootstrap.min.css}"/>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/lib/smoke.min.css}"/>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/app.css}"/>
+        <link rel="stylesheet" type="text/css" media="screen, projection"
+              th:href="@{/css/lib/jquery-ui.css}"/>
+        <script th:src="@{/js/lib/jquery-1.12.0.min.js}"></script>
+        <script th:src="@{/js/lib/jquery-ui.min.js}"></script>
+        <script th:src="@{/js/lib/bootstrap.min.js}"></script>
+        <script th:src="@{/js/lib/angular.min.1.4.9.js}"></script>
+        <script th:src="@{/js/lib/sockjs-0.3.4.js}"></script>
+        <script th:src="@{/js/lib/stomp.js}"></script>
+        <script th:src="@{/js/app.js}"></script>
+    </head>
+    <body ng-app="app" ng-controller="MainController as ctrl">
+        <script th:inline = "javascript">
+            $(function() {
+
+            $("#new_game-dialog").dialog(
+            { autoOpen: false,
+                    resizable: false,
+                    width : 580,
+                    height: 215,
+                    overflow : false,
+                    modal: true,
+                    buttons:
+            {[["Создать"]]: function() {
+            var scope = angular.element($("[ng-controller='MainController as ctrl']")).scope();
+                    scope.$apply(function () {
+                    scope.ctrl.createGame();
+                    });
+                    $(this).dialog("close");
+            }, [["Отмена"]]: function() {
+            $(this).dialog("close");
+            }
+            }
+            }
+            )
+
+            });</script>
+        <div id="new_game-dialog"
+             title="Новая игра">
+            <div class="panel panel-default" style="padding-top: 10px; margin-bottom: 0px;">
+                <div class="row" style="margin-left: -5px; margin-right: -5px;">
+                    <div class="form-group col-md-12">
+                        <label class="col-md-3 control-lable" for="gameName">Название игры:</label>
+                        <div class="col-md-7">
+                            <input type="text"
+                                   id="gameName"
+                                   ng-model="ctrl.game.name"
+                                   class="form-control"
+                                   required="true" 
+                                   ng-minlength="3"
+                                   placeholder="Введите название игры"/>
+                        </div>
+                    </div>
+                </div> 
+                <div class="row" style="margin-left: -5px; margin-right: -5px;">
+                    <div class="form-group col-md-12">
+                        <label class="col-md-3 control-lable" for="playerCount">Число игроков:</label>
+                        <div class="col-md-2">
+                            <input type="number"
+                                   min="1"
+                                   max="10"
+                                   id="playerCount"
+                                   ng-model="ctrl.game.playersCount"
+                                   class="form-control"
+                                   required="true"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row col-md-12" 
+             style="margin-top: 10px;
+             margin-right: 0px;
+             padding-right: 0px;
+             padding-left: 30px;">
+            <div class="panel panel-default col-md-6" 
+                 style="padding-left: 0px;
+                 padding-right: 0px;
+                 margin-bottom: 10px;">
+                <div class="panel-heading">
+                    <div class="row">
+                        <span class="lead" style="padding-left: 15px;">Игроки:</span>
+                    </div>
+                </div>
+                <div class="tablecontainer">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Имя</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="p in ctrl.players" style="{{ctrl.isUser(p)?'background-color: #ffa195;':''}}">
+                                <td><span ng-bind="p.name"></span></td>
+                                <td><span ng-bind="p.status"></span></td>
+                            </tr>                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="panel panel-default col-md-6"
+                 style="padding-left: 0px;
+                 padding-right: 0px;
+                 margin-bottom: 10px;">
+                <div class="panel-heading">
+                    <div class="row">
+                        <span class="lead" style="padding-left: 15px;">Игры:</span>
+                    </div>
+                </div>
+                <div class="tablecontainer">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Хост</th>
+                                <th>Имя</th>
+                                <th>Игроков</th>
+                                <th width = "15%"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="g in ctrl.games">
+                                <td><span ng-bind="g.host.name"></span></td>
+                                <td><span ng-bind="g.name"></span></td>
+                                <td><span ng-bind="ctrl.fill(g)"></span></td>
+                                <td><button type="button"  
+                                            ng-disabled="ctrl.isDisabled(g)"
+                                            ng-click="ctrl.connectToGame(g)"
+                                            class="btn btn-success"
+                                            style="width: 140px !important;">Присоединиться</button></td>
+                            </tr>                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row col-md-12">
+            <div class="form-actions"
+                 style="padding-left: 20px;">
+                <button type="button"  
+                        class="btn btn-primary"
+                        onclick="$('#new_game-dialog').dialog('open');">Создать игру</button>
+            </div>
+        </div>
+
+        <script th:src="@{/js/main/service.js}"></script>
+        <script th:src="@{/js/main/controller.js}"></script>
+    </body>
+</html>
+
