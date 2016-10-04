@@ -3,7 +3,7 @@ package com.mycompany.archers.controller;
 import com.mycompany.archers.model.Command;
 import com.mycompany.archers.model.Game;
 import com.mycompany.archers.model.GameModel;
-import com.mycompany.archers.model.Player;
+import com.mycompany.archers.model.Unit;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -28,7 +28,7 @@ public class MainPageController {
 
     @MessageMapping("/players_info")
     @SendTo("/archers/players_list")
-    public Set<Player> sendPlayersList(Command command) throws Exception {
+    public Set<Unit> sendPlayersList(Command command) throws Exception {
         if (command.name.equals("get_players")) {
             return gameModel.getPlayers();
         }

@@ -1,7 +1,7 @@
 package com.mycompany.archers.controller;
 
 import com.mycompany.archers.model.GameModel;
-import com.mycompany.archers.model.Player;
+import com.mycompany.archers.model.Unit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -19,7 +19,7 @@ public class LoginPageController {
 
     @MessageMapping("/login")
     @SendTo("/archers/login_response")
-    public String sendLoginResult(Player player) throws Exception {
+    public String sendLoginResult(Unit player) throws Exception {
         if (gameModel.isPlayerExist(player)) {
             return "fail";
         } else {

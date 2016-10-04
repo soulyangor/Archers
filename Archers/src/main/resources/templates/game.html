@@ -48,7 +48,7 @@
                     data-toggle="tooltip" 
                     data-placement="bottom" 
                     title="Увеличение скорости атаки"
-                    onclick = "gold -= 50;
+                    onclick = "gold -= attackSpeedPrice;
                             player.attackSpeed += 0.5;">
                 <span class="glyphicon glyphicon-flash"></span>
             </button>
@@ -74,6 +74,7 @@
         </div>
         <script th:src="@{/js/game/connection.js}"></script>
         <script th:src="@{/js/game/Bullet.js}"></script>
+        <script th:src="@{/js/game/Bot.js}"></script>
         <script th:src="@{/js/game/Player.js}"></script>
         <script th:src="@{/js/game/EnvCell.js}"></script>
         <script th:src="@{/js/game/Environment.js}"></script>

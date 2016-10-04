@@ -20,7 +20,7 @@ public class GameState {
     public Set<Wall> walls = new HashSet<>();
     public Set<Bush> bushes = new HashSet<>();
 
-    public Set<Player> players = new HashSet<>();
+    public Set<Unit> players = new HashSet<>();
 
     private static final List<MapPoint> positions = new ArrayList<>();
 
@@ -35,6 +35,11 @@ public class GameState {
         positions.add(new MapPoint(20, 36));
         positions.add(new MapPoint(20, 20));
         positions.add(new MapPoint(15, 12));
+        //для респа ботов
+        positions.add(new MapPoint(12, 12));
+        positions.add(new MapPoint(27, 12));
+        positions.add(new MapPoint(12, 27));
+        positions.add(new MapPoint(27, 27));
     }
 
     private static final int WALL_FREQUENCY = 25;  // 3 / 25
@@ -68,20 +73,28 @@ public class GameState {
         }
     }
 
-    public void defPlayersPosition(Set<Player> players) {
+    public void defPlayersPosition(Set<Unit> players) {
         this.players = players;
-        for (Player player : this.players) {
+        for (Unit player : this.players) {
             int index = (new Random()).nextInt(10);
             MapPoint point = positions.get(index);
-            player.setState(point.x, point.y, CELL_SIZE);
+            player.setPosition(point.x, point.y, CELL_SIZE);
         }
     }
 
-    public void respawnPlayer(Player player) {
+    public void respawnPlayer(Unit player) {
         player.respawn(player);
         int index = (new Random()).nextInt(10);
         MapPoint point = positions.get(index);
-        player.setState(point.x, point.y, CELL_SIZE);
+        player.setPosition(point.x, point.y, CELL_SIZE);
+    }
+
+    public Unit createBot() {
+        int index = 10 + (new Random()).nextInt(3);
+        MapPoint point = positions.get(index);
+        Unit bot = new Unit();
+        bot.setPosition(point.x, point.y, CELL_SIZE);
+        return bot;
     }
 
 }

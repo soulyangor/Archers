@@ -1,6 +1,13 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
+var BOT_VIEW_RANGE_RATIO = 1.05;
+var BOT_SPEED_RATIO = 0.55;
+var BOT_ATTACK_SPEED_RATIO = 1.5;
+var BOT_HP_RATIO = 0.3;
+
+var isGameStart = false;
+
 var controlCode = 0;
 var isMouseDown = false;
 
@@ -40,6 +47,13 @@ image2.src = 'css/images/archer_stand_attack.png';
 var image3 = new Image();
 image3.src = 'css/images/archer_walk_attack.png';
 
+var botImage1 = new Image();
+botImage1.src = 'css/images/skeleton_walk.png';
+var botImage2 = new Image();
+botImage2.src = 'css/images/skeleton_stand_attack.png';
+var botImage3 = new Image();
+botImage3.src = 'css/images/skeleton_walk_attack.png';
+
 var player = new Player(128, 128, 0, 2, 10, 550, 450, 10);
 var isAlive = true;
 player.setImages(image1, image2, image3);
@@ -52,6 +66,8 @@ var damagePrice = 50;
 var defDamage = 10;
 var rangePrice = 50;
 var defRange = 150;
+var attackSpeedPrice = 50;
+var defAttackSpeedPrice = 5;
 
 var attackSpeedLimit = 30;
 var bulletSpeedLimit = 24;
@@ -63,6 +79,11 @@ arrowImage.src = 'css/images/arrow.png';
 
 var bullets = {};
 var bulletCount = 0;
+
+var bots = {};
+var botCount = 0;
+var maxBotsCount = 0;
+var currentBotCount = 0;
 
 function Messages() {
 
@@ -79,14 +100,14 @@ function Messages() {
     this.update = function () {
         document.getElementById('rangeLabel').innerHTML = '' + player.attackRange + ' +20 - ' + rangePrice + ' злт';
         document.getElementById('damageLabel').innerHTML = '' + player.damage + ' +1 - ' + damagePrice + ' злт';
-        document.getElementById('attackSpeedLabel').innerHTML = '' + player.attackSpeed + '/' + attackSpeedLimit + ' +0.5 - 50 злт';
+        document.getElementById('attackSpeedLabel').innerHTML = '' + player.attackSpeed + '/' + attackSpeedLimit + ' +0.5 - ' + attackSpeedPrice + ' злт';
         document.getElementById('bulletSpeedLabel').innerHTML = '' + player.bulletSpeed + '/' + bulletSpeedLimit + ' +0.5 - 50 злт';
-        if (gold >= 50 && player.attackSpeed <= attackSpeedLimit) {
+        if (gold >= 50 && player.attackSpeed < attackSpeedLimit) {
             document.getElementById('attackSpeed').removeAttribute('disabled');
         } else {
             document.getElementById('attackSpeed').setAttribute('disabled', true);
         }
-        if (gold >= 50 && player.bulletSpeed <= bulletSpeedLimit) {
+        if (gold >= 50 && player.bulletSpeed < bulletSpeedLimit) {
             document.getElementById('bulletSpeed').removeAttribute('disabled');
         } else {
             document.getElementById('bulletSpeed').setAttribute('disabled', true);
@@ -183,13 +204,17 @@ var radar = new Radar();
  * Update game state
  * @returns {undefined}
  */
+var tick = 0;
 function update() {
+    tick = (tick + 1) % 900;
+
     messages.update();
     radar.update();
 
     player.cost = kills - deathes;
     damagePrice = Math.floor(50 + (player.damage - defDamage) * 5);
     rangePrice = Math.floor(50 + (player.attackRange - defRange) * 0.25);
+    attackSpeedPrice = Math.floor(50 + (player.attackSpeed - defAttackSpeedPrice) * 10)
 
     radar.duration = player.cost > 0 ? 300 + 60 * player.cost : 300;
 
@@ -251,17 +276,19 @@ function update() {
     player.update(environment);
     sendData({name: 'update', game: game, player: player});
     if (player.hp <= 0 && isAlive) {
+        player.gold = gold;
         sendData({name: 'death', game: game, player: player});
         isAlive = false;
         deathes++;
         gold /= 2;
+        player.setEnvNull(environment);
     }
 
     if (player.canAttack()) {
         bullets['b' + bulletCount] = new Bullet(player, player.damage, player.bulletSpeed, player.attackRange);
         bullets['b' + bulletCount].setImage(arrowImage);
         bulletCount++;
-        sendData({name: 'attack', game: game, player: player})
+        sendData({name: 'attack', game: game, player: player});
     }
 
     for (var key in bullets) {
@@ -269,6 +296,34 @@ function update() {
         if (bullets[key].isFinish(environment)) {
             delete bullets[key];
         }
+    }
+
+    if (deathes > kills && tick % 60 === 0) {
+        gold += 1;
+    }
+//боты
+    currentBotCount = 0;
+    for (var key in bots) {
+        var bot = bots[key];
+        if (bot.hp <= 0) {
+            if (bot.lastHitOwner === username) {
+                gold += bot.cost;
+            }
+            bots[key].setEnvNull(environment);
+            delete bots[key];
+            continue;
+        }
+        currentBotCount++;
+        bot.defAim(player, players);
+        bot.defDirection(environment);
+        bot.update(environment);
+        if (bot.defAttack(player, players) === username && bot.canAttack()) {
+            player.hp -= bot.damage;
+            player.lastHitOwner = 'AI';
+        }
+    }
+    if (currentBotCount < maxBotsCount && tick === 0) {
+        sendData({name: 'create_bot', game: game, player: null});
     }
 }
 
@@ -284,10 +339,17 @@ function render() {
         players[key].relDraw(player, ctx);
     }
 
+    for (var key in bots) {
+        bots[key].draw(player, ctx, false);
+    }
+
     environment.drawBushes(player, ctx);
     environment.redrawWalls(player, ctx);
     player.draw(WIDTH / 2 - 32, HEIGHT / 2 - 32, ctx, true);
-    player.drawNav(WIDTH / 2, HEIGHT / 2, players, radar.isOn, ctx);
+    player.drawNav(WIDTH / 2, HEIGHT / 2, players, bots, radar.isOn, ctx);
+    for (var key in bots) {
+        bots[key].draw(player, ctx, true);
+    }
     for (var key in bullets) {
         bullets[key].draw(player, ctx);
     }
@@ -320,10 +382,12 @@ function frame() {
 }
 
 function receive(data) {
-    if (data.name === 'get_start_state') {
+    if (data.name === 'get_start_state' && !isGameStart) {
+        isGameStart = true;
         environment.setBushes(data.game.gameState.bushes, [bushImage1, bushImage2]);
         environment.setWalls(data.game.gameState.walls, [wallImage1, wallImage2, wallImage3, wallImage]);
         var units = data.game.gameState.players;
+        maxBotsCount = units.length * 10;
         for (var i = 0; i < units.length; i++) {
             var u = units[i];
             players[u.name] = new Player(u.x, u.y, u.hp, u.speed, u.attackSpeed,
@@ -345,6 +409,7 @@ function receive(data) {
         player.update(environment);
     }
     if ((data.name === 'update' || data.name === 'respawn') && data.player.name !== username) {
+        players[data.player.name].setEnvNull(environment);
         players[data.player.name].x = data.player.x;
         players[data.player.name].y = data.player.y;
         players[data.player.name].hp = data.player.hp;
@@ -399,20 +464,43 @@ function receive(data) {
     }
     if (data.name === 'respawn') {
         var killerName = data.player.lastHitOwner;
-        var msg = 'Игрок ' + killerName + ' убил игрока ' +
-                data.player.name;
+        var msg = killerName !== 'AI' ? 'Игрок ' + killerName + ' убил игрока ' +
+                data.player.name : 'Компьютер убил игрока ' + data.player.name;
         if (killerName === username) {
             kills++;
             var cost = data.player.cost;
             if (cost >= 0) {
-                gold += 100 + cost * 5;
+                gold += 100 + cost * 5 + data.player.gold / 2;
             } else {
-                var price = cost > -10 ? 100 + cost * 10 : 10;
+                var price = cost > -5 ? 100 + cost * 10 : 50;
                 gold += price;
             }
         }
         messages.addMessage(msg);
     }
+
+    if (data.name === 'create_bot') {
+        var u = data.player;
+        bots['bot' + botCount] = new Bot(u.x, u.y, BOT_HP_RATIO * u.hp, BOT_SPEED_RATIO * u.speed,
+                BOT_ATTACK_SPEED_RATIO * u.attackSpeed,
+                BOT_VIEW_RANGE_RATIO * u.viewRange, u.attackRange,
+                u.damage, u.bulletSpeed);
+        bots['bot' + botCount].name = 'bot' + botCount;
+        bots['bot' + botCount].walkAngle = u.walkAngle;
+        bots['bot' + botCount].attackAngle = u.attackAngle;
+        bots['bot' + botCount].curFrame = u.curFrame;
+        bots['bot' + botCount].bckAttack = u.bckAttack;
+        bots['bot' + botCount].isAttack = u.isAttack;
+        bots['bot' + botCount].isWalk = u.isWalk;
+        bots['bot' + botCount].state = u.state;
+        bots['bot' + botCount].setImages(botImage1, botImage2, botImage3);
+        bots['bot' + botCount].generatePoints(environment);
+        bots['bot' + botCount].update(environment);
+        botCount++;
+    }
+    /*if (data.name === 'getData' && data.player.name !== username) {
+     sendData({name: 'synchronize', game: game, player: players[data.player.name]});
+     }*/
 }
 
 connect(receive, path, gameName, username);

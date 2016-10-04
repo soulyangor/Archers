@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service;
 @Service("GameModel")
 public class GameModel {
 
-    private final Map<String, Player> players = new HashMap<>();
+    private final Map<String, Unit> players = new HashMap<>();
     private final Map<String, Game> games = new HashMap<>();
 
     public GameModel() {
     }
 
-    public Set<Player> getPlayers() {
-        Set<Player> result = new HashSet<>();
+    public Set<Unit> getPlayers() {
+        Set<Unit> result = new HashSet<>();
         for (String key : players.keySet()) {
             result.add(players.get(key));
         }
@@ -38,22 +38,22 @@ public class GameModel {
         return result;
     }
 
-    public void addPlayer(Player player) {
+    public void addPlayer(Unit player) {
         players.put(player.getName(), player);
     }
 
-    public void removePlayer(Player player) {
+    public void removePlayer(Unit player) {
         players.remove(player.getName());
     }
 
-    public boolean isPlayerExist(Player player) {
+    public boolean isPlayerExist(Unit player) {
         return players.containsKey(player.getName());
     }
 
     public void addGame(Game game) {
         game.setStatus("created");
-        Player host = game.getHost();
-        Player player = players.get(host.getName());
+        Unit host = game.getHost();
+        Unit player = players.get(host.getName());
         player.setStatus(host.getStatus());
         games.put(game.getName(), game);
     }
@@ -62,8 +62,8 @@ public class GameModel {
         games.remove(game.getName());
     }
 
-    public void connectPlayer(Game game, Player player) {
-        Player p = players.get(player.getName());
+    public void connectPlayer(Game game, Unit player) {
+        Unit p = players.get(player.getName());
         Game g = games.get(game.getName());
         g.addPlayer(p);
     }
@@ -72,7 +72,7 @@ public class GameModel {
         return games.get(name);
     }
 
-    public Player getPlayer(String name) {
+    public Unit getPlayer(String name) {
         return players.get(name);
     }
 

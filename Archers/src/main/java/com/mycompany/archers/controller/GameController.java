@@ -3,7 +3,7 @@ package com.mycompany.archers.controller;
 import com.mycompany.archers.model.Command;
 import com.mycompany.archers.model.Game;
 import com.mycompany.archers.model.GameModel;
-import com.mycompany.archers.model.Player;
+import com.mycompany.archers.model.Unit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -33,17 +33,32 @@ public class GameController {
             return;
         }
         if (command.name.equals("death")) {
-            Player player = command.player;
+            Unit player = command.player;
             game.gameState.respawnPlayer(player);
             command.player = player;
             command.name = "respawn";
             messagingTemplate.convertAndSend(path, command);
             return;
         }
-        if (command.name.equals("update")) {
-            game.getPlayer(command.player.getName()).update(command.player);
-            //return;
+        if (command.name.equals("create_bot")) {
+            Unit bot = game.gameState.createBot();
+            command.player = bot;
+            command.game = null;
+            messagingTemplate.convertAndSend(path, command);
+            return;
         }
+        /*if (command.name.equals("update")) {
+            boolean isUpdated = game.getPlayer(command.player.getName())
+                    .update(command.player);
+           if (!isUpdated) {
+                messagingTemplate.convertAndSend(path, "getData");
+            
+            return;
+        }
+        if (command.name.equals("synchronize")) {
+            messagingTemplate.convertAndSend(path, "getData");
+            return;
+        }*/
         messagingTemplate.convertAndSend(path, command);
     }
 
@@ -51,7 +66,7 @@ public class GameController {
     private void sendPlayersData() {
         for (Game game : gameModel.getGames("started")) {
             String path = "/archers/" + game.getName() + "_data";
-            for (Player player : game.getPlayers()) {
+            for (Unit player : game.getPlayers()) {
                 Command command = new Command();
                 command.name = "update";
                 command.player = player;
@@ -60,5 +75,4 @@ public class GameController {
             }
         }
     }*/
-
 }

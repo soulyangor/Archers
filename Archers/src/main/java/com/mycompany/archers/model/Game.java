@@ -15,9 +15,9 @@ public class Game {
     private String status;
     private int playersCount;
 
-    private Player host;
+    private Unit host;
 
-    private final Set<Player> players = new HashSet<>();
+    private final Set<Unit> players = new HashSet<>();
 
     public Game() {
     }
@@ -47,11 +47,11 @@ public class Game {
                 ? playersCount : 1;
     }
 
-    public Player getHost() {
+    public Unit getHost() {
         return host;
     }
 
-    public void setHost(Player host) {
+    public void setHost(Unit host) {
         this.host = host;
         if (host != null) {
             host.setStatus("ожидает начала игры");
@@ -59,23 +59,23 @@ public class Game {
         }
     }
 
-    public Set<Player> getPlayers() {
+    public Set<Unit> getPlayers() {
         return players;
     }
 
-    public void addPlayer(Player player) {
+    public void addPlayer(Unit player) {
         if (players.size() < playersCount && !players.contains(player)) {
             player.setStatus("ожидает начала игры");
             players.add(player);
         }
     }
 
-    public void removePlayer(Player player) {
+    public void removePlayer(Unit player) {
         players.remove(player);
     }
 
-    public Player getPlayer(String name) {
-        for (Player player : players) {
+    public Unit getPlayer(String name) {
+        for (Unit player : players) {
             if (player.getName().equals(name)) {
                 return player;
             }

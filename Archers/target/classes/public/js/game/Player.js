@@ -79,7 +79,7 @@ function Player(x, y, hp, speed, attackSpeed, vr, ar, dmg, bSpeed) {
         }
     };
 
-    this.drawNav = function (x, y, players, flag, ctx) {
+    this.drawNav = function (x, y, players, bots, flag, ctx) {
         //рисование навигации
         var oldStyle = ctx.strokeStyle;
         var oldLine = ctx.lineWidth;
@@ -105,13 +105,38 @@ function Player(x, y, hp, speed, attackSpeed, vr, ar, dmg, bSpeed) {
                     ctx.lineTo(cx + 8, cy - 8);
                     ctx.lineTo(cx + 13, cy - 8);
                     ctx.stroke();
-                    var oldColor = ctx.fillStyle;
                     ctx.fillStyle = 'red';
                     ctx.font = 10 + "px Georgia";
                     ctx.fillText('' + key, cx + 7, cy - 11);
                     ctx.fillText('' + Math.floor(players[key].hp) + '%', cx + 7, cy + 1);
                 }
-                ctx.fillStyle = oldColor;
+            }
+        }
+        if (flag) {
+            for (var key in bots) {
+                var dx = bots[key].x - this.x;
+                var dy = bots[key].y - this.y;
+                ctx.strokeStyle = 'blue';
+                ctx.lineWidth = 4;
+                ctx.globalAlpha = 0.45;
+                var angle = getAngle(dx, dy);
+                angle *= Math.PI / 180;
+                ctx.beginPath();
+                var cx = x + size * Math.cos(angle);
+                var cy = y + size * Math.sin(angle);
+                ctx.arc(cx, cy, 5, 0, 2 * Math.PI, true);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + 8, cy - 8);
+                ctx.lineTo(cx + 13, cy - 8);
+                ctx.stroke();
+                ctx.fillStyle = 'blue';
+                ctx.font = 10 + "px Georgia";
+                ctx.fillText('' + key, cx + 7, cy - 11);
+                ctx.fillText('' + Math.floor(bots[key].hp) + '%', cx + 7, cy + 1);
             }
         }
         ctx.strokeStyle = oldStyle;
@@ -309,5 +334,11 @@ function Player(x, y, hp, speed, attackSpeed, vr, ar, dmg, bSpeed) {
                 && environment.isCellWalkable(i3, j3)
                 && environment.isCellWalkable(i4, j4);
     }
+
+    this.setEnvNull = function (environment) {
+        var i = Math.floor(this.x / size);
+        var j = Math.floor(this.y / size);
+        environment.getEnvCell(i, j).unit = null;
+    };
 
 }

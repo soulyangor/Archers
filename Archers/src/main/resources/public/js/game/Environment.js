@@ -35,7 +35,7 @@ function Environment(n, m, images) {
 
     this.getSizes = function () {
         return {n: map.length, m: map[0].length};
-    };    
+    };
 
     this.setWalls = function (wallArr, wallImages) {
         for (var i = 0; i < wallArr.length; i++) {
@@ -54,6 +54,103 @@ function Environment(n, m, images) {
 
     this.isCellWalkable = function (i, j) {
         return i >= 0 && j >= 0 && i < n && j < m && map[i][j].hp == 0;
+    };
+
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+        this.parent = null;
+        this.G = 0;
+        this.H = 0;
+        this.F = 0;
+        this.calcH = function (ex, ey) {
+            this.H = Math.sqrt((ex - this.x) * (ex - this.x) + (ey - this.y) * (ey - this.y));
+        }
+        this.calcF = function ( ) {
+            this.F = this.G + this.H;
+        }
+    }
+
+    this.searchPath = function (x0, y0, x, y) {
+        var openList = {};
+        var closeList = {};
+        var step = 0;
+        var newPoint = new Point(x0, y0);
+        var curPoint = null;
+        newPoint.calcH(x, y);
+        newPoint.calcF( );
+        var tKey = 'key' + newPoint.x + '|' + newPoint.y;
+        openList[tKey] = newPoint;
+        var count = 1;
+        var complete = false;
+        while ((count > 0) && (!complete)) {
+            var FMin = Infinity;
+            curPoint = null;
+            for (var key in openList) {
+                if (openList[key].F < FMin) {
+                    FMin = openList[key].F;
+                    curPoint = openList[key];
+                }
+            }
+            if (curPoint === null) {
+                return null;
+            }
+            tKey = 'key' + curPoint.x + '|' + curPoint.y;
+            closeList[tKey] = curPoint;
+            delete openList[tKey];
+            for (var i = curPoint.x - 1; i < curPoint.x + 2; i++)
+                for (var j = curPoint.y - 1; j < curPoint.y + 2; j++) {
+                    if ((map[i] === undefined) || (map[i][j] === undefined)) {
+                        continue;
+                    }
+                    if (map[i][j].hp > 0) {
+                        continue;
+                    }
+                    if (!((curPoint.x == i) || (curPoint.y == j))) {
+                        if ((map[curPoint.x][j].hp > 0) || (map[i][curPoint.y].hp > 0)) { // || на &&
+                            continue;
+                        }
+                    }
+                    if ((i == curPoint.x) && (j == curPoint.y)) {
+                        continue;
+                    } else if (!complete) {
+                        complete = (i == x) && (j == y);
+                    } else
+                        break;
+                    tKey = 'key' + i + '|' + j;
+                    if (tKey in closeList) {
+                        continue;
+                    }
+                    if (tKey in openList) {
+                        if ((curPoint.x == openList[tKey].x) ||
+                                (curPoint.y == openList[tKey].y)) {
+                            step = 1;
+                        } else {
+                            step = 1.41;
+                        }
+                        if (openList[tKey].G > curPoint.G + step) {
+                            openList[tKey].parent = curPoint;
+                            openList[tKey].G = curPoint.G + step;
+                            openList[tKey].calcF();
+                        }
+                    } else {
+                        if ((curPoint.x == i) ||
+                                (curPoint.y == j)) {
+                            step = 1;
+                        } else {
+                            step = 1.41;
+                        }
+                        newPoint = new Point(i, j);
+                        newPoint.parent = curPoint;
+                        newPoint.G = curPoint.G + step;
+                        newPoint.calcH(x, y);
+                        newPoint.calcF( );
+                        openList[tKey] = newPoint;
+                        count++;
+                    }
+                }
+        }
+        return openList['key' + x + '|' + y ];
     };
 
     /**
@@ -108,3 +205,4 @@ function Environment(n, m, images) {
     };
 
 }
+
